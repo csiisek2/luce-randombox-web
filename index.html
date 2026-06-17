@@ -7,159 +7,155 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
-  :root{ color-scheme: dark; }
+  :root{ color-scheme: dark;
+    --gold:#e9c25a; --gold-lt:#fff0bf; --gold-dk:#9c7322; --cream:#f3e6c4;
+    --bd:rgba(233,194,90,.28); --panel:rgba(24,19,9,.72); }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body{ margin:0; height:100%; }
   body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    color:#fff; min-height:100vh; overflow-x:hidden;
-    background:radial-gradient(1200px 700px at 50% -5%, #34215e 0%, #161126 55%, #0a0712 100%);
+    font-family:"Georgia","Times New Roman",-apple-system,serif;
+    color:var(--cream); min-height:100vh; overflow-x:hidden;
+    background:radial-gradient(900px 600px at 50% 22%, #1c1407 0%, #0d0a04 48%, #000 100%);
     display:flex; flex-direction:column; align-items:center;
-    padding:22px 16px 28px; position:relative;
+    padding:24px 16px 30px; position:relative;
   }
-  .stars{ position:fixed; inset:0; pointer-events:none; z-index:0; }
-  .stars::before,.stars::after{
-    content:""; position:absolute; inset:0;
+  .dust{ position:fixed; inset:0; pointer-events:none; z-index:0;
     background-image:
-      radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,.7), transparent),
-      radial-gradient(1.5px 1.5px at 70% 18%, rgba(255,215,120,.8), transparent),
-      radial-gradient(1.5px 1.5px at 40% 70%, rgba(255,255,255,.5), transparent),
-      radial-gradient(2px 2px at 85% 55%, rgba(255,215,120,.7), transparent),
-      radial-gradient(1.5px 1.5px at 12% 80%, rgba(255,255,255,.5), transparent);
-    animation:twinkle 3.5s ease-in-out infinite alternate;
-  }
-  .stars::after{ animation-delay:1.7s; opacity:.6; }
-  @keyframes twinkle{ from{opacity:.25} to{opacity:1} }
+      radial-gradient(1.4px 1.4px at 18% 28%, rgba(255,220,140,.9), transparent),
+      radial-gradient(1.2px 1.2px at 72% 16%, rgba(255,235,180,.8), transparent),
+      radial-gradient(1.5px 1.5px at 42% 72%, rgba(255,210,110,.7), transparent),
+      radial-gradient(2px 2px at 84% 58%, rgba(255,225,150,.8), transparent),
+      radial-gradient(1.3px 1.3px at 10% 82%, rgba(255,220,140,.7), transparent);
+    animation:twinkle 4s ease-in-out infinite alternate; }
+  @keyframes twinkle{ from{opacity:.2} to{opacity:.85} }
 
   .brand{ z-index:2; text-align:center; }
-  .logo{ font-size:38px; font-weight:800; letter-spacing:2px; line-height:1;
-    background:linear-gradient(95deg,#ffe17a,#ffb347,#ff7a7a,#ffe17a); background-size:300% auto;
+  .logo{ font-family:"Georgia",serif; font-size:42px; font-weight:700; letter-spacing:4px; line-height:1;
+    background:linear-gradient(180deg,#fff3cf 0%,#e9c25a 45%,#a9781f 100%);
     -webkit-background-clip:text; background-clip:text; color:transparent;
-    animation:shine 4s linear infinite; text-shadow:0 0 30px rgba(255,180,80,.35); }
-  @keyframes shine{ to{ background-position:300% center; } }
-  .ko{ font-size:13px; letter-spacing:6px; opacity:.7; margin-top:3px; }
-  .sub{ z-index:2; font-size:12.5px; opacity:.6; margin:10px 0 0; text-align:center; }
+    text-shadow:0 0 26px rgba(233,194,90,.45); }
+  .ko{ font-size:12px; letter-spacing:8px; color:var(--gold); opacity:.8; margin-top:6px; }
+  .rule{ width:120px; height:1px; margin:12px auto 0;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+  .sub{ z-index:2; font-size:12px; opacity:.55; margin:10px 0 0; text-align:center; letter-spacing:.5px; }
 
-  /* 중앙 무대 */
   .stage{ z-index:2; flex:1; width:100%; display:flex; align-items:center; justify-content:center;
-    perspective:900px; min-height:300px; position:relative; }
-  .halo{ position:absolute; width:300px; height:300px; border-radius:50%;
-    background:radial-gradient(circle, rgba(255,200,90,.35), rgba(150,90,255,.12) 45%, transparent 70%);
-    filter:blur(8px); animation:halo 3s ease-in-out infinite; }
-  @keyframes halo{ 0%,100%{transform:scale(.9);opacity:.7} 50%{transform:scale(1.08);opacity:1} }
+    perspective:1000px; min-height:280px; position:relative; }
 
-  .gift{ position:relative; width:190px; height:185px; transform-style:preserve-3d;
-    animation:floaty 3.2s ease-in-out infinite; cursor:pointer; }
-  @keyframes floaty{ 0%,100%{transform:translateY(0) rotateZ(-1deg)} 50%{transform:translateY(-10px) rotateZ(1deg)} }
+  /* ── 보물상자 ── */
+  .chestWrap{ position:relative; width:240px; height:178px; transform-style:preserve-3d;
+    animation:floaty 3.8s ease-in-out infinite; cursor:pointer; }
+  @keyframes floaty{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+  .csh{ position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); width:170px; height:24px;
+    background:radial-gradient(rgba(0,0,0,.6),transparent 70%); filter:blur(4px);
+    animation:cshp 3.8s ease-in-out infinite; }
+  @keyframes cshp{ 0%,100%{transform:translateX(-50%) scale(1);opacity:.6} 50%{transform:translateX(-50%) scale(.82);opacity:.4} }
+  .glow{ position:absolute; left:50%; top:42%; width:300px; height:300px; transform:translate(-50%,-50%);
+    border-radius:50%; background:radial-gradient(circle, rgba(255,205,90,.4), rgba(255,170,40,.08) 50%, transparent 70%);
+    filter:blur(7px); animation:glowp 3s ease-in-out infinite; z-index:1; }
+  @keyframes glowp{ 0%,100%{opacity:.55;transform:translate(-50%,-50%) scale(.92)} 50%{opacity:.9;transform:translate(-50%,-50%) scale(1.06)} }
+  .rays{ position:absolute; left:50%; top:40%; width:380px; height:380px; transform:translate(-50%,-50%) scale(.3); z-index:2;
+    background:repeating-conic-gradient(from 0deg, rgba(255,228,150,.0) 0deg 10deg, rgba(255,228,150,.45) 11deg 12deg, rgba(255,228,150,0) 13deg 22deg);
+    opacity:0; }
 
-  .shadow{ position:absolute; bottom:-14px; left:50%; transform:translateX(-50%);
-    width:140px; height:22px; background:radial-gradient(rgba(0,0,0,.55), transparent 70%);
-    filter:blur(3px); animation:sh 3.2s ease-in-out infinite; }
-  @keyframes sh{ 0%,100%{transform:translateX(-50%) scale(1);opacity:.6} 50%{transform:translateX(-50%) scale(.82);opacity:.4} }
+  .base{ position:absolute; bottom:0; left:6px; width:228px; height:102px; border-radius:8px 8px 16px 16px; z-index:4;
+    background:linear-gradient(#7c2020,#551414);
+    border:3px solid var(--gold);
+    box-shadow:inset 0 -12px 22px rgba(0,0,0,.55), inset 0 4px 10px rgba(255,220,140,.22), 0 8px 0 #360c0c, 0 18px 26px rgba(0,0,0,.6); }
+  .frameV{ position:absolute; left:50%; transform:translateX(-50%); top:-3px; width:36px; height:102px;
+    background:linear-gradient(90deg,var(--gold-dk),var(--gold-lt) 45%,var(--gold)); box-shadow:0 0 10px rgba(255,220,140,.3); }
+  .frameH{ position:absolute; left:-3px; right:-3px; top:16px; height:13px;
+    background:linear-gradient(var(--gold-lt),var(--gold-dk)); }
+  .stud{ position:absolute; width:6px; height:6px; border-radius:50%; background:radial-gradient(#fff3cf,#a9781f); }
+  .lock{ position:absolute; top:-13px; left:50%; transform:translateX(-50%); width:34px; height:40px; border-radius:7px; z-index:7;
+    background:linear-gradient(160deg,#fff0bf,#d9a93a 55%,#9c7322); border:2px solid #7a5a1c;
+    box-shadow:inset 0 2px 4px rgba(255,255,255,.7), 0 3px 6px rgba(0,0,0,.5); animation:glint 2.6s ease-in-out infinite; }
+  @keyframes glint{ 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.35)} }
+  .lock::after{ content:""; position:absolute; left:50%; top:17px; transform:translateX(-50%); width:7px; height:12px; border-radius:2px; background:#4a3410; }
 
-  /* 박스 본체 (3D 느낌) */
-  .body{ position:absolute; bottom:0; left:18px; width:154px; height:118px; border-radius:12px;
-    background:linear-gradient(150deg,#ffe79a 0%,#ffb04d 45%,#ff8a3d 100%);
-    box-shadow:inset 0 3px 8px rgba(255,255,255,.7), inset -10px -14px 22px rgba(150,40,0,.35),
-      0 14px 26px rgba(255,120,40,.45); }
-  .body::before{ content:""; position:absolute; right:-12px; top:8px; width:12px; height:104px;
-    background:linear-gradient(#d9742a,#b9551d); border-radius:0 8px 8px 0; transform:skewY(-32deg); }
-  .vrib{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:30px; height:118px;
-    background:linear-gradient(90deg,#ff5fa2,#ff8fc4,#ff5fa2); box-shadow:0 0 10px rgba(255,90,160,.5); }
-  /* 뚜껑 */
-  .lid{ position:absolute; top:30px; left:0; width:190px; height:52px; border-radius:12px; z-index:3;
-    background:linear-gradient(150deg,#ffd86b 0%,#ff9d3c 60%,#ff7b3a 100%);
-    box-shadow:inset 0 3px 8px rgba(255,255,255,.8), inset 0 -8px 14px rgba(150,40,0,.3), 0 8px 18px rgba(255,120,40,.4);
-    transform-origin:50% 100%; }
-  .hrib{ position:absolute; top:50%; left:0; transform:translateY(-50%); width:190px; height:30px;
-    background:linear-gradient(0deg,#ff5fa2,#ff8fc4,#ff5fa2); }
-  .bow{ position:absolute; top:-26px; left:50%; transform:translateX(-50%); font-size:46px; z-index:4;
-    filter:drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
-  .inner-glow{ position:absolute; top:34px; left:50%; transform:translateX(-50%); width:120px; height:60px;
-    border-radius:50%; background:radial-gradient(rgba(255,245,200,.95), rgba(255,210,120,.4) 60%, transparent);
-    opacity:0; z-index:2; }
-  .beam{ position:absolute; left:50%; bottom:60px; width:60px; height:0; transform:translateX(-50%);
-    background:linear-gradient(0deg, rgba(255,230,150,.9), rgba(255,230,150,0));
-    filter:blur(4px); opacity:0; z-index:1; }
+  .treasure{ position:absolute; left:50%; top:26px; transform:translateX(-50%) scale(.5); width:180px; height:62px; border-radius:50%; z-index:5;
+    background:radial-gradient(circle at 50% 38%, #fff8de, #ffd152 45%, #c98f1e 92%); opacity:0; filter:blur(.4px); }
 
-  /* 떨림(긴장감) */
-  .gift.rattle{ animation:rattle .07s linear infinite; }
-  @keyframes rattle{
-    0%{transform:translate(-2px,1px) rotate(-3deg)} 25%{transform:translate(3px,-2px) rotate(3deg)}
-    50%{transform:translate(-3px,2px) rotate(-2deg)} 75%{transform:translate(2px,-1px) rotate(4deg)}
-    100%{transform:translate(-2px,1px) rotate(-3deg)} }
-  .gift.rattle .body, .gift.rattle .lid{ box-shadow:inset 0 3px 8px rgba(255,255,255,.8), 0 0 26px 6px rgba(255,210,120,.8) !important; }
+  .lidWrap{ position:absolute; top:0; left:6px; width:228px; height:72px; transform-origin:50% 100%; z-index:6; }
+  .lid{ position:relative; width:228px; height:72px; border-radius:120px 120px 6px 6px;
+    background:linear-gradient(180deg,#fff0bf 0%,#e9c25a 45%,#b5862a 100%); border:3px solid var(--gold); border-bottom:none;
+    box-shadow:inset 0 6px 12px rgba(255,255,255,.55), inset 0 -8px 14px rgba(120,80,10,.4); overflow:hidden; }
+  .lid .inset{ position:absolute; left:50%; transform:translateX(-50%); top:8px; width:170px; height:58px; border-radius:90px 90px 4px 4px;
+    background:linear-gradient(#7c2020,#551414); box-shadow:inset 0 3px 8px rgba(0,0,0,.5); }
+  .lid .lidband{ position:absolute; left:50%; transform:translateX(-50%); top:0; width:36px; height:72px;
+    background:linear-gradient(90deg,var(--gold-dk),var(--gold-lt) 45%,var(--gold)); }
 
-  /* 개봉 */
-  .gift.open{ animation:none; }
-  .gift.open .lid{ animation:lidoff .42s cubic-bezier(.3,1.6,.5,1) forwards; }
-  @keyframes lidoff{ to{ transform:translateY(-150px) rotateX(60deg) rotateZ(22deg) scale(.85); opacity:0; } }
-  .gift.open .body{ animation:bodypop .42s ease forwards; }
-  @keyframes bodypop{ 30%{transform:scaleY(.9) scaleX(1.05)} 100%{transform:scaleY(1) scaleX(1)} }
-  .gift.open .inner-glow{ animation:iglow .5s ease forwards; }
-  @keyframes iglow{ 0%{opacity:0;transform:translateX(-50%) scale(.4)} 60%{opacity:1} 100%{opacity:.9;transform:translateX(-50%) scale(1.6)} }
-  .gift.open .beam{ animation:beamup .5s ease forwards; }
-  @keyframes beamup{ 0%{height:0;opacity:0} 40%{opacity:1} 100%{height:240px;opacity:.85} }
-  .gift.open .bow, .gift.open .vrib{ opacity:0; transition:opacity .2s; }
+  .chestWrap.rattle{ animation:rattle .07s linear infinite; }
+  @keyframes rattle{ 0%{transform:translate(-2px,1px) rotate(-2deg)} 25%{transform:translate(3px,-1px) rotate(2deg)}
+    50%{transform:translate(-2px,2px) rotate(-1deg)} 75%{transform:translate(2px,-1px) rotate(2deg)} 100%{transform:translate(-2px,1px) rotate(-2deg)} }
+  .chestWrap.rattle .glow{ opacity:1; }
+  .chestWrap.rattle .lock{ animation:glint .3s linear infinite; }
 
-  .tap-hint{ z-index:2; font-size:14px; font-weight:700; margin-top:6px;
-    color:#ffd86b; text-shadow:0 0 12px rgba(255,200,90,.6); animation:pulse 1.3s ease-in-out infinite; }
-  @keyframes pulse{ 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.06)} }
+  .chestWrap.open{ animation:none; }
+  .chestWrap.open .lidWrap{ animation:lidopen .5s cubic-bezier(.4,1.35,.5,1) forwards; }
+  @keyframes lidopen{ to{ transform:rotateX(-122deg); } }
+  .chestWrap.open .treasure{ animation:treas .55s ease forwards; }
+  @keyframes treas{ 0%{opacity:0;transform:translateX(-50%) scale(.5)} 60%{opacity:1} 100%{opacity:1;transform:translateX(-50%) scale(1.18)} }
+  .chestWrap.open .glow{ opacity:1 !important; animation:none; transform:translate(-50%,-50%) scale(1.35); }
+  .chestWrap.open .rays{ animation:raysin .7s ease forwards, rayspin 9s linear infinite .3s; }
+  @keyframes raysin{ 0%{opacity:0;transform:translate(-50%,-50%) scale(.3)} 100%{opacity:.85;transform:translate(-50%,-50%) scale(1)} }
+  @keyframes rayspin{ to{ transform:translate(-50%,-50%) scale(1) rotate(360deg); } }
+  .chestWrap.open .lock{ opacity:0; transition:opacity .2s; }
 
-  /* 하단 상품 목록 */
-  .legend{ z-index:2; width:100%; max-width:400px; margin-top:6px; }
-  .legend-title{ text-align:center; font-size:12px; opacity:.65; letter-spacing:1px; margin-bottom:8px; }
+  .tap-hint{ z-index:2; font-size:14px; font-weight:700; letter-spacing:1px; margin-top:10px; color:var(--gold);
+    text-shadow:0 0 14px rgba(233,194,90,.5); animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:.55} 50%{opacity:1} }
+
+  .legend{ z-index:2; width:100%; max-width:400px; margin-top:8px; }
+  .legend-title{ text-align:center; font-size:11px; letter-spacing:3px; color:var(--gold); opacity:.7; margin-bottom:9px; }
   .chips{ display:flex; gap:7px; justify-content:center; flex-wrap:wrap; }
-  .chip{ padding:7px 12px; border-radius:11px; font-size:13px; font-weight:800;
-    background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(255,255,255,.04));
-    border:1px solid rgba(255,255,255,.14); }
-  .chip.t5{ background:linear-gradient(145deg,#ff8f3a,#ff5fa2); border-color:transparent; box-shadow:0 4px 12px rgba(255,90,160,.4); }
-  .chip.t4{ background:linear-gradient(145deg,#ffb347,#ff8f3a); border-color:transparent; }
-  .chip.t3{ background:linear-gradient(145deg,#ffd86b,#ffb347); color:#3a1d00; border-color:transparent; }
+  .chip{ padding:7px 13px; border-radius:9px; font-size:13px; font-weight:700; font-family:-apple-system,sans-serif;
+    background:rgba(233,194,90,.07); border:1px solid var(--bd); color:var(--cream); }
+  .chip.t5{ background:linear-gradient(145deg,#fff0bf,#d9a93a); color:#2a1c00; border-color:transparent; box-shadow:0 3px 14px rgba(233,194,90,.4); }
+  .chip.t4{ background:linear-gradient(145deg,#e9c25a,#b5862a); color:#2a1c00; border-color:transparent; }
 
   .panel{ z-index:2; width:100%; max-width:400px; text-align:center; }
   .hidden{ display:none !important; }
-  .btn{ display:inline-block; padding:14px 24px; border:none; border-radius:14px;
-    background:linear-gradient(145deg,#ffd86b,#ff9d3c); color:#3a1d00; font-size:16px;
-    font-weight:800; cursor:pointer; text-decoration:none; box-shadow:0 6px 18px rgba(255,150,60,.4); }
-  .btn.ghost{ background:rgba(255,255,255,.1); color:#fff; box-shadow:none; }
-  .card{ margin-top:10px; padding:26px 20px; border-radius:22px;
-    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); }
-  .card .emoji{ font-size:54px; }
-  .card .title{ font-size:23px; font-weight:800; margin:10px 0; }
-  .win-card{ position:relative; overflow:hidden;
-    background:linear-gradient(160deg,#7a4dff,#b14dff 45%,#ff7ad1);
-    box-shadow:0 12px 40px rgba(150,80,255,.5); animation:winIn .5s cubic-bezier(.2,1.5,.4,1) both; }
+  .btn{ display:inline-block; padding:14px 24px; border:none; border-radius:12px; font-family:-apple-system,sans-serif;
+    background:linear-gradient(180deg,#fff0bf,#e9c25a 55%,#b5862a); color:#2a1c00; font-size:15px;
+    font-weight:800; cursor:pointer; text-decoration:none; box-shadow:0 6px 18px rgba(233,194,90,.35); }
+  .btn.ghost{ background:transparent; color:var(--gold); border:1px solid var(--bd); box-shadow:none; }
+  .card{ margin-top:10px; padding:26px 20px; border-radius:18px; font-family:-apple-system,sans-serif;
+    background:var(--panel); border:1px solid var(--bd); box-shadow:0 10px 40px rgba(0,0,0,.5); }
+  .card .emoji{ font-size:52px; }
+  .card .title{ font-size:22px; font-weight:800; margin:10px 0; color:var(--gold-lt); }
+  .win-card{ position:relative; overflow:hidden; border:1px solid rgba(233,194,90,.5);
+    background:linear-gradient(160deg,#241a08,#3a2a0c 50%,#241a08);
+    box-shadow:0 12px 44px rgba(180,130,20,.4); animation:winIn .5s cubic-bezier(.2,1.5,.4,1) both; }
   @keyframes winIn{ from{transform:scale(.5) translateY(20px); opacity:0} to{transform:none;opacity:1} }
   .win-card::before{ content:""; position:absolute; inset:-50%; z-index:0;
-    background:conic-gradient(from 0deg, transparent 0 18deg, rgba(255,255,255,.2) 20deg 24deg, transparent 26deg 360deg);
-    animation:ray 7s linear infinite; }
-  @keyframes ray{ to{ transform:rotate(360deg); } }
+    background:repeating-conic-gradient(from 0deg, transparent 0 14deg, rgba(255,225,150,.16) 15deg 17deg, transparent 18deg 30deg);
+    animation:rayspin 8s linear infinite; }
   .win-card>*{ position:relative; z-index:1; }
-  .prize-amount{ font-size:36px; font-weight:900; text-shadow:0 2px 12px rgba(0,0,0,.3); }
-  .coupon-code{ font-family:ui-monospace,monospace; font-size:20px; font-weight:800; letter-spacing:1px;
-    background:rgba(0,0,0,.28); padding:12px 14px; border-radius:12px; margin:14px 0 6px; word-break:break-all; }
-  #qr{ display:inline-block; background:#fff; padding:10px; border-radius:12px; margin:10px 0; }
-  .meta{ font-size:12.5px; opacity:.92; margin-top:6px; }
-  .wallet-item{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:14px; margin-bottom:10px; text-align:left; }
-  .wcode{ font-family:ui-monospace,monospace; font-weight:800; font-size:16px; background:rgba(0,0,0,.28);
-    padding:9px 11px; border-radius:9px; margin:8px 0; word-break:break-all; }
+  .prize-amount{ font-size:38px; font-weight:900; color:#ffe9a8; text-shadow:0 2px 14px rgba(255,200,80,.5); }
+  .coupon-code{ font-family:ui-monospace,monospace; font-size:20px; font-weight:800; letter-spacing:1px; color:#fff;
+    background:rgba(0,0,0,.4); padding:12px 14px; border-radius:11px; margin:14px 0 6px; word-break:break-all; border:1px solid var(--bd); }
+  #qr{ display:inline-block; background:#fff; padding:10px; border-radius:11px; margin:10px 0; }
+  .meta{ font-size:12.5px; opacity:.85; margin-top:6px; }
+  .spinner{ z-index:2; width:42px; height:42px; border:3px solid rgba(233,194,90,.2);
+    border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; margin:80px auto; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .wallet-item{ background:rgba(233,194,90,.05); border:1px solid var(--bd); border-radius:14px; padding:14px; margin-bottom:10px; text-align:left; }
+  .wcode{ font-family:ui-monospace,monospace; font-weight:800; font-size:16px; background:rgba(0,0,0,.35);
+    padding:9px 11px; border-radius:9px; margin:8px 0; word-break:break-all; color:#fff; }
   .wqr{ display:inline-block; background:#fff; padding:8px; border-radius:10px; margin-top:4px; }
   .wbadge{ font-size:12px; font-weight:800; }
-  .spinner{ z-index:2; width:42px; height:42px; border:4px solid rgba(255,255,255,.2);
-    border-top-color:#ffcf4d; border-radius:50%; animation:spin 1s linear infinite; margin:80px auto; }
-  @keyframes spin{ to{ transform:rotate(360deg); } }
-  .confetti{ position:fixed; top:-14px; width:11px; height:15px; z-index:50; opacity:.97; pointer-events:none; will-change:transform; }
-  .burst{ position:fixed; left:50%; top:46%; width:10px; height:10px; z-index:40; border-radius:50%;
-    background:#fff; pointer-events:none; box-shadow:0 0 0 0 rgba(255,220,120,.9); animation:burst .6s ease-out forwards; }
+  .confetti{ position:fixed; top:-14px; width:10px; height:14px; z-index:50; opacity:.97; pointer-events:none; will-change:transform; }
+  .burst{ position:fixed; left:50%; top:44%; width:10px; height:10px; z-index:40; border-radius:50%;
+    background:#fff6d6; pointer-events:none; box-shadow:0 0 0 0 rgba(255,210,110,.9); animation:burst .6s ease-out forwards; }
   @keyframes burst{ 0%{transform:translate(-50%,-50%) scale(.2);opacity:1}
-    100%{transform:translate(-50%,-50%) scale(30);opacity:0;box-shadow:0 0 90px 50px rgba(255,200,90,0)} }
+    100%{transform:translate(-50%,-50%) scale(30);opacity:0;box-shadow:0 0 90px 50px rgba(255,200,80,0)} }
 </style>
 </head>
 <body>
-  <div class="stars"></div>
-  <div class="brand"><div class="logo">Luce</div><div class="ko">루 체 박 스</div></div>
-  <div class="sub">하루 한 번, 빛나는 행운을 열어보세요 ✨</div>
+  <div class="dust"></div>
+  <div class="brand"><div class="logo">Luce</div><div class="ko">루 체 박 스</div><div class="rule"></div></div>
+  <div class="sub">하루 한 번, 운명의 보물상자를 여세요</div>
 
   <div id="loading" class="spinner"></div>
 
@@ -168,62 +164,58 @@
     <div class="card">
       <div class="emoji">🔒</div>
       <div class="title">채널 구독 필요</div>
-      <p style="opacity:.85">채널을 구독한 회원만<br>루체박스를 열 수 있어요.</p>
+      <p style="opacity:.85">채널을 구독한 회원만<br>보물상자를 열 수 있어요.</p>
       <a id="channelLink" class="btn" href="#" target="_blank">📢 채널 구독하기</a>
       <div style="margin-top:14px"><button class="btn ghost" onclick="loadStatus()">🔄 구독 다시 확인</button></div>
     </div>
   </div>
 
-  <!-- 게임 -->
+  <!-- 게임(보물상자) -->
   <div id="game" class="hidden" style="z-index:2;width:100%;display:flex;flex-direction:column;align-items:center;flex:1">
     <div class="stage">
-      <div class="halo"></div>
-      <div class="gift" id="gift" onclick="play()">
-        <div class="beam"></div>
-        <div class="shadow"></div>
-        <div class="inner-glow"></div>
-        <div class="body"><div class="vrib"></div></div>
-        <div class="lid"><div class="hrib"></div><div class="bow">🎀</div></div>
+      <div class="chestWrap" id="chest" onclick="play()">
+        <div class="glow"></div>
+        <div class="rays"></div>
+        <div class="csh"></div>
+        <div class="treasure"></div>
+        <div class="base"><div class="frameV"></div><div class="frameH"></div>
+          <div class="stud" style="left:14px;top:34px"></div><div class="stud" style="right:14px;top:34px"></div>
+          <div class="stud" style="left:14px;bottom:14px"></div><div class="stud" style="right:14px;bottom:14px"></div>
+          <div class="lock"></div>
+        </div>
+        <div class="lidWrap"><div class="lid"><div class="inset"></div><div class="lidband"></div></div></div>
       </div>
     </div>
-    <p class="tap-hint" id="tapHint">👆 박스를 탭하세요!</p>
+    <p class="tap-hint" id="tapHint">✦ 상자를 탭하세요 ✦</p>
     <div class="legend">
-      <div class="legend-title">🎁 당첨 상품</div>
+      <div class="legend-title">T R E A S U R E</div>
       <div class="chips">
-        <span class="chip t5">5만원</span>
-        <span class="chip t4">4만원</span>
-        <span class="chip t3">3만원</span>
-        <span class="chip">2만원</span>
-        <span class="chip">1만원 할인권</span>
+        <span class="chip t5">5만원</span><span class="chip t4">4만원</span>
+        <span class="chip">3만원</span><span class="chip">2만원</span><span class="chip">1만원 할인권</span>
       </div>
     </div>
     <button class="btn ghost" style="margin-top:16px" onclick="openWallet()">🎟️ 내 쿠폰함</button>
   </div>
 
-  <!-- 결과 -->
   <div id="resultPanel" class="panel hidden"></div>
-
-  <!-- 쿠폰함 -->
+  <div id="holdPanel" class="panel hidden"></div>
   <div id="walletPanel" class="panel hidden"></div>
 
 <script>
 var BASE = "https://zvmbrfqohqgafzjvqpme.supabase.co/functions/v1";
 var tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
-try { if (tg.setHeaderColor) tg.setHeaderColor("#161126"); } catch(e){}
+try { if (tg.setHeaderColor) tg.setHeaderColor("#000000"); } catch(e){}
 var initData = tg.initData || "";
 function $(id){ return document.getElementById(id); }
 function haptic(t){ try{ if(t==="win"){ tg.HapticFeedback.notificationOccurred("success"); } else { tg.HapticFeedback.impactOccurred(t); } }catch(e){} }
-function show(id){ ["loading","subscribe","game","resultPanel","walletPanel"].forEach(function(x){ $(x).classList.add("hidden"); }); $(id).classList.remove("hidden"); }
+function show(id){ ["loading","subscribe","game","resultPanel","holdPanel","walletPanel"].forEach(function(x){ $(x).classList.add("hidden"); }); $(id).classList.remove("hidden"); }
 
 function post(path, body, retry){
   if(retry === undefined) retry = 1;
   return fetch(BASE + path, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body||{}) })
     .then(function(r){ return r.json().then(function(d){ return { status:r.status, data:d }; }); })
-    .catch(function(e){
-      if(retry > 0){ return new Promise(function(res){ setTimeout(res, 700); }).then(function(){ return post(path, body, retry-1); }); }
-      throw e;
-    });
+    .catch(function(e){ if(retry>0){ return new Promise(function(res){ setTimeout(res,700); }).then(function(){ return post(path,body,retry-1); }); } throw e; });
 }
 
 function loadStatus(){
@@ -237,79 +229,87 @@ function loadStatus(){
     }
     window._today = data.today || {};
     window._wallet = data.wallet || [];
+    window._hold = data.hold || null;
+    if(data.hold){ renderHold(data.hold); return; }                 // 미사용 쿠폰 보유 → 잠금
     if(data.today && data.today.played){ renderResult(data.today, true); return; }
     show("game");
-  }).catch(function(){ renderError("네트워크 오류. 잠시 후 다시 시도해주세요.<br>아래 버튼으로 재시도하세요.", true); });
+  }).catch(function(){ renderError("네트워크 오류. 잠시 후 다시 시도해주세요.", true); });
 }
 
 var playing = false;
 function play(){
   if(playing) return; playing = true;
-  var gift = $("gift");
+  var chest = $("chest");
   $("tapHint").style.visibility = "hidden";
-  gift.classList.add("rattle");
+  chest.classList.add("rattle");
   haptic("heavy");
-  // 긴장감: 떨리는 동안 짧게 두 번 더 진동
   setTimeout(function(){ haptic("rigid"); }, 200);
   setTimeout(function(){ haptic("heavy"); }, 400);
 
   var started = Date.now();
   post("/play", { initData: initData }).then(function(res){
     var data = res.data;
-    var wait = Math.max(0, 560 - (Date.now() - started));  // 최소 0.56s 긴장감
+    var wait = Math.max(0, 580 - (Date.now() - started));
     setTimeout(function(){
       if(!data.ok){
-        gift.classList.remove("rattle");
+        chest.classList.remove("rattle");
         if(data.error === "not_subscribed"){ playing = false; loadStatus(); return; }
+        if(data.error === "have_coupon" && data.coupon){ window._hold = data.coupon; renderHold(data.coupon); return; }
         if(data.error === "limit" && data.today){ renderResult(data.today, true); return; }
         renderError("오류가 발생했어요.<br>잠시 후 다시 시도해주세요."); return;
       }
-      // 개봉!
-      gift.classList.remove("rattle"); gift.classList.add("open");
+      chest.classList.remove("rattle"); chest.classList.add("open");
       haptic("heavy");
       if(data.win){ celebrate(); }
-      setTimeout(function(){ renderResult(data, false); }, data.win ? 430 : 380);
+      setTimeout(function(){ renderResult(data, false); }, data.win ? 470 : 420);
     }, wait);
-  }).catch(function(){ $("gift").classList.remove("rattle"); renderError("네트워크 오류. 잠시 후 다시 시도해주세요."); });
+  }).catch(function(){ $("chest").classList.remove("rattle"); renderError("네트워크 오류. 잠시 후 다시 시도해주세요."); });
+}
+
+function renderHold(c){
+  $("holdPanel").innerHTML =
+    '<div class="card">' +
+      '<div class="emoji">🎟️</div>' +
+      '<div class="title">보유 중인 쿠폰</div>' +
+      '<div class="prize-amount" style="font-size:28px">' + c.label + '</div>' +
+      '<div class="coupon-code">' + c.code + '</div>' +
+      '<div id="holdqr"></div>' +
+      '<div class="meta">유효기간 · ~' + c.expires_at + '</div>' +
+      '<p style="opacity:.8;font-size:13px;margin-top:14px;line-height:1.6">쿠폰은 <b>한 번에 하나만</b> 보유할 수 있어요.<br>이 쿠폰을 매장에서 <b>사용</b>하면 다시 도전할 수 있습니다.</p>' +
+      '<div style="margin-top:12px"><button class="btn ghost" onclick="loadStatus()">🔄 새로고침</button></div>' +
+    '</div>';
+  show("holdPanel");
+  new QRCode($("holdqr"), { text: c.code, width:140, height:140 });
+  haptic("light");
 }
 
 function renderResult(d, fromHistory){
   var p = $("resultPanel");
-  var histNote = fromHistory ? '<p class="tap-hint" style="animation:none;color:#bbb;margin-top:14px">오늘은 이미 참여하셨어요. 내일 또 만나요!</p>' : "";
   var walletBtn = '<div style="margin-top:14px"><button class="btn ghost" onclick="openWallet()">🎟️ 내 쿠폰함</button></div>';
+  var histNote = fromHistory ? '<p class="meta" style="margin-top:14px;opacity:.6">오늘은 이미 참여하셨어요. 내일 또 만나요!</p>' : "";
   if(d.win){
     var c = d.coupon || {};
-    // 방금 당첨된 쿠폰을 쿠폰함에 반영 (중복 방지)
     if(c.code && !fromHistory){
       window._wallet = window._wallet || [];
-      var exists = window._wallet.some(function(x){ return x.code === c.code; });
-      if(!exists){ window._wallet.unshift({ code:c.code, label:c.label, amount:c.amount, status:"unused", expires_at:c.expires_at, used_at:null }); }
+      if(!window._wallet.some(function(x){ return x.code === c.code; })){
+        window._wallet.unshift({ code:c.code, label:c.label, amount:c.amount, status:"unused", expires_at:c.expires_at, used_at:null });
+      }
+      window._hold = { code:c.code, label:c.label, amount:c.amount, expires_at:c.expires_at };
     }
-    var couponHtml = "";
-    if(c.code){
-      couponHtml =
-        '<div class="coupon-code">' + c.code + '</div>' +
-        '<div id="qr"></div>' +
-        '<div class="meta">유효기간 · ~' + c.expires_at + '</div>' +
-        '<div class="meta">사용 시 매장에 쿠폰번호를 보여주세요</div>';
-    }
+    var couponHtml = c.code ?
+      '<div class="coupon-code">' + c.code + '</div><div id="qr"></div>' +
+      '<div class="meta">유효기간 · ~' + c.expires_at + '</div>' +
+      '<div class="meta">사용 시 매장에 쿠폰번호를 보여주세요</div>' : "";
     p.innerHTML =
-      '<div class="card win-card">' +
-        '<div class="emoji">🎉</div>' +
-        '<div class="title">당첨을 축하합니다!</div>' +
-        '<div class="prize-amount">' + d.label + '</div>' +
-        couponHtml +
-      '</div>' + walletBtn + histNote;
+      '<div class="card win-card"><div class="emoji">🏆</div><div class="title">당첨을 축하합니다!</div>' +
+      '<div class="prize-amount">' + d.label + '</div>' + couponHtml + '</div>' + walletBtn + histNote;
     show("resultPanel");
     if(c.code){ new QRCode($("qr"), { text: c.code, width:140, height:140 }); }
     if(!fromHistory){ celebrate(); } haptic("win");
   } else {
     p.innerHTML =
-      '<div class="card">' +
-        '<div class="emoji">🥲</div>' +
-        '<div class="title">아쉽게 꽝!</div>' +
-        '<p style="opacity:.85">다음 기회를 노려보세요.<br>내일 다시 도전할 수 있어요!</p>' +
-      '</div>' + walletBtn + histNote;
+      '<div class="card"><div class="emoji">🪙</div><div class="title">아쉽게 꽝!</div>' +
+      '<p style="opacity:.85">다음 기회를 노려보세요.<br>내일 다시 도전할 수 있어요!</p></div>' + walletBtn + histNote;
     show("resultPanel"); haptic("light");
   }
 }
@@ -323,56 +323,44 @@ function renderError(msg, showRetry){
 function openWallet(){
   var w = window._wallet || [];
   var items = "";
-  if(!w.length){ items = '<p style="opacity:.75;text-align:center;padding:20px 0">아직 보유한 쿠폰이 없어요.<br>박스를 열어 행운을 잡아보세요! 🎁</p>'; }
-  else {
-    for(var i=0;i<w.length;i++){
-      var c = w[i];
-      var badge, op = "1";
-      if(c.status === "unused"){ badge = '<span class="wbadge" style="color:#5fd38a">● 사용가능</span>'; }
-      else if(c.status === "used"){ badge = '<span class="wbadge" style="color:#999">● 사용완료</span>'; op = ".55"; }
-      else { badge = '<span class="wbadge" style="color:#ff8a84">● 회수됨</span>'; op = ".55"; }
-      items +=
-        '<div class="wallet-item" style="opacity:'+op+'">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center"><strong>'+c.label+'</strong>'+badge+'</div>' +
-          '<div class="wcode">'+c.code+'</div>' +
-          (c.status === "unused" ? '<div style="text-align:center"><div class="wqr" id="wqr'+i+'"></div></div>' : "") +
-          '<div class="meta">유효기간 ~'+c.expires_at+(c.used_at ? (' · '+c.used_at) : "")+'</div>' +
-        '</div>';
-    }
+  if(!w.length){ items = '<p style="opacity:.75;text-align:center;padding:20px 0">아직 보유한 쿠폰이 없어요.<br>보물상자를 열어 행운을 잡아보세요! ✦</p>'; }
+  else for(var i=0;i<w.length;i++){
+    var c = w[i], badge, op = "1";
+    if(c.status === "unused"){ badge = '<span class="wbadge" style="color:#7fe0a0">● 사용가능</span>'; }
+    else if(c.status === "used"){ badge = '<span class="wbadge" style="color:#999">● 사용완료</span>'; op = ".55"; }
+    else { badge = '<span class="wbadge" style="color:#ff8a84">● 회수됨</span>'; op = ".55"; }
+    items += '<div class="wallet-item" style="opacity:'+op+'">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center"><strong>'+c.label+'</strong>'+badge+'</div>' +
+      '<div class="wcode">'+c.code+'</div>' +
+      (c.status === "unused" ? '<div style="text-align:center"><div class="wqr" id="wqr'+i+'"></div></div>' : "") +
+      '<div class="meta">유효기간 ~'+c.expires_at+(c.used_at ? (' · '+c.used_at) : "")+'</div></div>';
   }
   $("walletPanel").innerHTML =
-    '<div class="card" style="text-align:left">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
-        '<h2 style="margin:0;font-size:19px">🎟️ 내 쿠폰함</h2>' +
-        '<button class="btn ghost" style="padding:9px 14px" onclick="backFromWallet()">← 돌아가기</button></div>' +
-      items +
-    '</div>';
+    '<div class="card" style="text-align:left"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+    '<h2 style="margin:0;font-size:19px;color:#fff0bf">🎟️ 내 쿠폰함</h2>' +
+    '<button class="btn ghost" style="padding:9px 14px" onclick="backFromWallet()">← 돌아가기</button></div>' + items + '</div>';
   show("walletPanel");
   for(var j=0;j<w.length;j++){ if(w[j].status === "unused"){ var el = $("wqr"+j); if(el) new QRCode(el, { text:w[j].code, width:120, height:120 }); } }
 }
 
 function backFromWallet(){
-  if(window._today && window._today.played){ renderResult(window._today, true); }
+  if(window._hold){ renderHold(window._hold); }
+  else if(window._today && window._today.played){ renderResult(window._today, true); }
   else { show("game"); }
 }
 
 function celebrate(){
-  var burst = document.createElement("div");
-  burst.className = "burst"; document.body.appendChild(burst);
+  var burst = document.createElement("div"); burst.className = "burst"; document.body.appendChild(burst);
   setTimeout(function(){ burst.remove(); }, 700);
-  var colors = ["#ffd86b","#ff7ad1","#7a4dff","#5fd38a","#ff7b54","#fff","#ffb347"];
+  var colors = ["#ffe7a3","#ffd152","#e9c25a","#c98f1e","#fff6d6","#b5862a"];
   for(var i=0;i<150;i++){
-    var c = document.createElement("div");
-    c.className = "confetti";
-    c.style.left = (Math.random()*100) + "vw";
-    c.style.background = colors[i % colors.length];
-    c.style.borderRadius = Math.random() < .3 ? "50%" : "2px";
-    var dur = 1.8 + Math.random()*1.6, delay = Math.random()*0.35;
-    var xEnd = (Math.random()*2 - 1) * 140;
-    c.animate([
-      { transform:"translate(0,0) rotate(0deg)", opacity:1 },
-      { transform:"translate(" + xEnd + "px, 110vh) rotate(" + (720 + Math.random()*720) + "deg)", opacity:.9 }
-    ], { duration: dur*1000, delay: delay*1000, easing:"cubic-bezier(.2,.6,.4,1)" });
+    var c = document.createElement("div"); c.className = "confetti";
+    c.style.left = (Math.random()*100) + "vw"; c.style.background = colors[i % colors.length];
+    c.style.borderRadius = Math.random() < .5 ? "50%" : "2px";
+    var dur = 1.8 + Math.random()*1.6, delay = Math.random()*0.35, xEnd = (Math.random()*2 - 1) * 140;
+    c.animate([{ transform:"translate(0,0) rotate(0deg)", opacity:1 },
+      { transform:"translate(" + xEnd + "px, 110vh) rotate(" + (720 + Math.random()*720) + "deg)", opacity:.9 }],
+      { duration: dur*1000, delay: delay*1000, easing:"cubic-bezier(.2,.6,.4,1)" });
     document.body.appendChild(c);
     (function(el, life){ setTimeout(function(){ el.remove(); }, life); })(c, (dur+delay)*1000);
   }
