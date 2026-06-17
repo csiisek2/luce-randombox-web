@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Luce · 루체박스</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+  :root{ color-scheme: dark; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; height:100%; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:#fff; min-height:100vh; overflow-x:hidden;
+    background:radial-gradient(1200px 600px at 50% -10%, #2a1d4d 0%, #14101f 55%, #0b0810 100%);
+    display:flex; flex-direction:column; align-items:center;
+    padding:26px 16px 50px; position:relative;
+  }
+  .stars::before,.stars::after{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,.6), transparent),
+      radial-gradient(1.5px 1.5px at 70% 20%, rgba(255,215,120,.7), transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%, rgba(255,255,255,.5), transparent),
+      radial-gradient(2px 2px at 85% 60%, rgba(255,215,120,.6), transparent);
+    animation:twinkle 3.5s ease-in-out infinite alternate;
+  }
+  .stars::after{ animation-delay:1.7s; opacity:.6; }
+  @keyframes twinkle{ from{opacity:.25} to{opacity:.9} }
+  .brand{ z-index:1; text-align:center; margin-bottom:6px; }
+  .logo{
+    font-size:40px; font-weight:800; letter-spacing:2px; line-height:1;
+    background:linear-gradient(95deg,#ffe17a,#ffb347,#ff7a7a,#ffe17a);
+    background-size:300% auto; -webkit-background-clip:text; background-clip:text;
+    color:transparent; animation:shine 4s linear infinite;
+    text-shadow:0 0 30px rgba(255,180,80,.35);
+  }
+  @keyframes shine{ to{ background-position:300% center; } }
+  .ko{ font-size:14px; letter-spacing:6px; opacity:.7; margin-top:4px; }
+  .sub{ z-index:1; font-size:13px; opacity:.6; margin:14px 0 18px; text-align:center; }
+  .grid{ z-index:1; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; width:100%; max-width:380px; }
+  .box{
+    aspect-ratio:1; border-radius:18px; cursor:pointer; position:relative;
+    background:linear-gradient(150deg,#ffd86b 0%,#ff9d3c 55%,#ff7b54 100%);
+    display:flex; align-items:center; justify-content:center; font-size:42px;
+    box-shadow:0 8px 22px rgba(255,140,60,.35), inset 0 2px 6px rgba(255,255,255,.5);
+    transition:transform .15s ease, opacity .35s; user-select:none;
+    animation:float 3s ease-in-out infinite;
+  }
+  .box:nth-child(2n){ animation-delay:.4s }
+  .box:nth-child(3n){ animation-delay:.8s }
+  @keyframes float{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+  .box::after{ content:""; position:absolute; top:8%; left:12%; width:55%; height:30%;
+    background:linear-gradient(180deg,rgba(255,255,255,.6),transparent); border-radius:50%; filter:blur(2px); }
+  .box:active{ transform:scale(.92); }
+  .box.dimmed{ opacity:.25; pointer-events:none; animation:none; }
+  .box.chosen{ animation:chosenPop .7s cubic-bezier(.2,1.4,.5,1) forwards; z-index:5; }
+  @keyframes chosenPop{
+    0%{transform:scale(1)} 30%{transform:scale(1.18) rotate(-4deg)}
+    55%{transform:scale(1.05) rotate(4deg)} 75%{transform:scale(1.25)}
+    100%{transform:scale(1.4); opacity:0;}
+  }
+  .panel{ z-index:1; width:100%; max-width:380px; text-align:center; }
+  .hint{ z-index:1; font-size:13px; opacity:.55; margin-top:16px; }
+  .hidden{ display:none !important; }
+  .btn{ display:inline-block; padding:14px 24px; border:none; border-radius:14px;
+    background:linear-gradient(145deg,#ffd86b,#ff9d3c); color:#3a1d00; font-size:16px;
+    font-weight:800; cursor:pointer; text-decoration:none; box-shadow:0 6px 18px rgba(255,150,60,.4); }
+  .btn.ghost{ background:rgba(255,255,255,.1); color:#fff; box-shadow:none; }
+  .card{ margin-top:10px; padding:26px 20px; border-radius:22px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); backdrop-filter:blur(6px); }
+  .card .emoji{ font-size:54px; }
+  .card .title{ font-size:24px; font-weight:800; margin:10px 0; }
+  .win-card{ position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#7a4dff,#b14dff 45%,#ff7ad1);
+    box-shadow:0 12px 40px rgba(150,80,255,.5);
+    animation:winIn .6s cubic-bezier(.2,1.3,.4,1) both; }
+  @keyframes winIn{ from{transform:scale(.6) translateY(20px); opacity:0} to{transform:none;opacity:1} }
+  .win-card::before{ content:""; position:absolute; inset:-50%; z-index:0;
+    background:conic-gradient(from 0deg, transparent 0 18deg, rgba(255,255,255,.18) 20deg 24deg, transparent 26deg 360deg);
+    animation:ray 8s linear infinite; }
+  @keyframes ray{ to{ transform:rotate(360deg); } }
+  .win-card > *{ position:relative; z-index:1; }
+  .prize-amount{ font-size:34px; font-weight:900; text-shadow:0 2px 12px rgba(0,0,0,.3); }
+  .coupon-code{ font-family:ui-monospace,monospace; font-size:20px; font-weight:800; letter-spacing:1px;
+    background:rgba(0,0,0,.28); padding:12px 14px; border-radius:12px; margin:14px 0 6px; word-break:break-all; }
+  #qr{ display:inline-block; background:#fff; padding:10px; border-radius:12px; margin:10px 0; }
+  .meta{ font-size:12.5px; opacity:.92; margin-top:6px; }
+  .spinner{ z-index:1; width:42px; height:42px; border:4px solid rgba(255,255,255,.2);
+    border-top-color:#ffcf4d; border-radius:50%; animation:spin 1s linear infinite; margin:60px auto; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .confetti{ position:fixed; top:-12px; width:10px; height:14px; z-index:50; opacity:.95; pointer-events:none; will-change:transform; }
+  .burst{ position:fixed; left:50%; top:42%; width:10px; height:10px; z-index:40; border-radius:50%;
+    background:#fff; pointer-events:none; box-shadow:0 0 0 0 rgba(255,220,120,.9); animation:burst .7s ease-out forwards; }
+  @keyframes burst{ 0%{ transform:translate(-50%,-50%) scale(.2); opacity:1; }
+    100%{ transform:translate(-50%,-50%) scale(26); opacity:0; box-shadow:0 0 80px 40px rgba(255,200,90,.0); } }
+</style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="brand"><div class="logo">Luce</div><div class="ko">루 체 박 스</div></div>
+  <div class="sub">하루 한 번, 빛나는 행운을 열어보세요 ✨</div>
+
+  <div id="loading" class="spinner"></div>
+
+  <div id="subscribe" class="panel hidden">
+    <div class="card">
+      <div class="emoji">🔒</div>
+      <div class="title">채널 구독 필요</div>
+      <p style="opacity:.85">채널을 구독한 회원만<br>루체박스를 열 수 있어요.</p>
+      <a id="channelLink" class="btn" href="#" target="_blank">📢 채널 구독하기</a>
+      <div style="margin-top:14px"><button class="btn ghost" onclick="loadStatus()">🔄 구독 다시 확인</button></div>
+    </div>
+  </div>
+
+  <div id="game" class="panel hidden">
+    <div class="grid" id="grid"></div>
+    <p class="hint">마음에 드는 박스를 하나 선택하세요</p>
+  </div>
+
+  <div id="resultPanel" class="panel hidden"></div>
+
+<script>
+var BASE = "https://zvmbrfqohqgafzjvqpme.supabase.co/functions/v1";
+var BOXES = 6;
+var tg = window.Telegram.WebApp;
+tg.ready(); tg.expand();
+try { if (tg.setHeaderColor) tg.setHeaderColor("#14101f"); } catch(e){}
+var initData = tg.initData || "";
+function $(id){ return document.getElementById(id); }
+function haptic(t){ try{ if(t==="win"){ tg.HapticFeedback.notificationOccurred("success"); } else { tg.HapticFeedback.impactOccurred(t); } }catch(e){} }
+function show(id){ ["loading","subscribe","game","resultPanel"].forEach(function(x){ $(x).classList.add("hidden"); }); $(id).classList.remove("hidden"); }
+
+function post(path, body){
+  return fetch(BASE + path, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body||{}) })
+    .then(function(r){ return r.json().then(function(d){ return { status:r.status, data:d }; }); });
+}
+
+function loadStatus(){
+  show("loading");
+  post("/status", { initData: initData }).then(function(res){
+    var data = res.data;
+    if(!data.ok){ renderError("사용자 인증에 실패했어요.<br>봇에서 게임을 다시 열어주세요."); return; }
+    if(!data.subscribed){
+      if(data.channel_url) $("channelLink").href = data.channel_url;
+      show("subscribe"); return;
+    }
+    if(data.today && data.today.played){ renderResult(data.today, true); return; }
+    renderGrid();
+  }).catch(function(){ renderError("네트워크 오류. 잠시 후 다시 시도해주세요."); });
+}
+
+function renderGrid(){
+  var grid = $("grid"); grid.innerHTML = "";
+  var emojis = ["🎁","📦","🎀","💝","🛍️","🎊","✨","🏆","💎"];
+  for(var i=0;i<BOXES;i++){
+    var b = document.createElement("div");
+    b.className = "box"; b.textContent = emojis[i % emojis.length];
+    (function(el){ el.onclick = function(){ play(el); }; })(b);
+    grid.appendChild(b);
+  }
+  show("game");
+}
+
+var playing = false;
+function play(boxEl){
+  if(playing) return; playing = true;
+  var boxes = document.querySelectorAll(".box");
+  for(var i=0;i<boxes.length;i++){ if(boxes[i] !== boxEl) boxes[i].classList.add("dimmed"); }
+  haptic("medium");
+  boxEl.classList.add("chosen");
+  post("/play", { initData: initData }).then(function(res){
+    var data = res.data;
+    setTimeout(function(){
+      if(!data.ok){
+        if(data.error === "not_subscribed"){ playing = false; loadStatus(); return; }
+        if(data.error === "limit" && data.today){ renderResult(data.today, true); return; }
+        renderError("오류가 발생했어요.<br>잠시 후 다시 시도해주세요."); return;
+      }
+      renderResult(data, false);
+    }, 720);
+  }).catch(function(){ renderError("네트워크 오류. 잠시 후 다시 시도해주세요."); });
+}
+
+function renderResult(d, fromHistory){
+  var p = $("resultPanel");
+  var histNote = fromHistory ? '<p class="hint">오늘은 이미 참여하셨어요. 내일 또 만나요!</p>' : "";
+  if(d.win){
+    var c = d.coupon || {};
+    var couponHtml = "";
+    if(c.code){
+      couponHtml =
+        '<div class="coupon-code">' + c.code + '</div>' +
+        '<div id="qr"></div>' +
+        '<div class="meta">유효기간 · ~' + c.expires_at + '</div>' +
+        '<div class="meta">사용 시 매장에 쿠폰번호를 보여주세요</div>';
+    }
+    p.innerHTML =
+      '<div class="card win-card">' +
+        '<div class="emoji">🎉</div>' +
+        '<div class="title">당첨을 축하합니다!</div>' +
+        '<div class="prize-amount">' + d.label + '</div>' +
+        couponHtml +
+      '</div>' + histNote;
+    show("resultPanel");
+    if(c.code){ new QRCode($("qr"), { text: c.code, width:140, height:140 }); }
+    celebrate(); haptic("win");
+  } else {
+    p.innerHTML =
+      '<div class="card">' +
+        '<div class="emoji">🥲</div>' +
+        '<div class="title">아쉽게 꽝!</div>' +
+        '<p style="opacity:.85">다음 기회를 노려보세요.<br>내일 다시 도전할 수 있어요!</p>' +
+      '</div>' + histNote;
+    show("resultPanel"); haptic("light");
+  }
+}
+
+function renderError(msg){
+  $("resultPanel").innerHTML = '<div class="card"><div class="emoji">⚠️</div><p>' + msg + '</p></div>';
+  show("resultPanel"); playing = false;
+}
+
+function celebrate(){
+  var burst = document.createElement("div");
+  burst.className = "burst"; document.body.appendChild(burst);
+  setTimeout(function(){ burst.remove(); }, 800);
+  var colors = ["#ffd86b","#ff7ad1","#7a4dff","#5fd38a","#ff7b54","#fff"];
+  for(var i=0;i<120;i++){
+    var c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = (Math.random()*100) + "vw";
+    c.style.background = colors[i % colors.length];
+    c.style.borderRadius = Math.random() < .3 ? "50%" : "2px";
+    var dur = 2 + Math.random()*1.8, delay = Math.random()*0.5;
+    var xEnd = (Math.random()*2 - 1) * 120;
+    c.animate([
+      { transform:"translate(0,0) rotate(0deg)", opacity:1 },
+      { transform:"translate(" + xEnd + "px, 110vh) rotate(" + (720 + Math.random()*720) + "deg)", opacity:.9 }
+    ], { duration: dur*1000, delay: delay*1000, easing:"cubic-bezier(.2,.6,.4,1)" });
+    document.body.appendChild(c);
+    (function(el, life){ setTimeout(function(){ el.remove(); }, life); })(c, (dur+delay)*1000);
+  }
+}
+
+loadStatus();
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luce 관리자</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f1117;color:#e8e8e8;margin:0;padding:20px;}
+  .wrap{max-width:900px;margin:0 auto;}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  h1{font-size:22px;margin:0;} a.logout,button.logout{color:#888;font-size:13px;text-decoration:none;background:none;border:none;cursor:pointer;}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;}
+  .stat{background:#1b1e27;border-radius:12px;padding:14px 18px;flex:1;min-width:120px;}
+  .stat .n{font-size:24px;font-weight:700;} .stat .l{font-size:12px;opacity:.6;}
+  .card{background:#1b1e27;border-radius:14px;padding:20px;margin-bottom:20px;}
+  .card h2{font-size:16px;margin:0 0 14px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  input[type=text],input[type=password]{flex:1;min-width:200px;padding:12px;border-radius:10px;border:1px solid #333;background:#0f1117;color:#fff;font-size:15px;}
+  input.num{width:90px;padding:8px;border-radius:8px;border:1px solid #333;background:#0f1117;color:#fff;font-size:14px;}
+  button{padding:12px 20px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;}
+  .btn-primary{background:linear-gradient(145deg,#ffcf4d,#ff8f3a);color:#1a1a1a;}
+  .btn-danger{background:#e0453e;color:#fff;}
+  .msg{padding:12px 14px;border-radius:10px;margin-bottom:14px;font-weight:600;}
+  .msg.ok{background:rgba(31,139,76,.2);color:#5fd38a;border:1px solid #1f8b4c;}
+  .msg.no{background:rgba(224,69,62,.2);color:#ff8a84;border:1px solid #e0453e;}
+  .lookup{background:#0f1117;border-radius:10px;padding:16px;margin-top:14px;}
+  .lookup .k{opacity:.6;font-size:12px;} .lookup .big{font-size:18px;font-weight:700;font-family:monospace;}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+  .badge.unused{background:#1f8b4c;color:#fff;} .badge.used{background:#555;color:#ccc;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #262a36;}
+  th{opacity:.6;font-weight:600;} td.code{font-family:monospace;}
+  .hidden{display:none!important;}
+  .login-card{max-width:340px;margin:12vh auto 0;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- 로그인 -->
+  <div id="login" class="card login-card">
+    <h1>✨ Luce</h1><p style="opacity:.6;font-size:13px;margin-top:2px">루체박스 관리자</p>
+    <div id="loginErr"></div>
+    <input type="password" id="pw" placeholder="관리자 비밀번호" style="margin:12px 0">
+    <button class="btn-primary" style="width:100%" onclick="doLogin()">로그인</button>
+  </div>
+
+  <!-- 대시보드 -->
+  <div id="dash" class="hidden">
+    <header><h1>✨ Luce 관리자</h1><button class="logout" onclick="logout()">로그아웃</button></header>
+    <div id="msg"></div>
+    <div class="stats" id="stats"></div>
+
+    <div class="card">
+      <h2>🎲 당첨 확률 조정 (실시간)</h2>
+      <p style="opacity:.6;font-size:13px;margin-top:-6px">가중치를 바꾸면 즉시 반영됩니다. 합계가 100이 아니어도 됩니다(상대 비율).</p>
+      <table id="prizeTable"></table>
+      <button class="btn-primary" style="margin-top:14px" onclick="saveWeights()">💾 확률 저장</button>
+    </div>
+
+    <div class="card">
+      <h2>🎫 쿠폰 조회 / 사용처리</h2>
+      <div class="row">
+        <input type="text" id="code" placeholder="쿠폰번호 입력 (예: RAND-5만-A1B2C3)">
+        <button class="btn-primary" onclick="lookup()">조회</button>
+      </div>
+      <div id="lookupBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>📋 발급 내역</h2>
+      <table id="couponTable"></table>
+    </div>
+  </div>
+</div>
+
+<script>
+var BASE = "https://zvmbrfqohqgafzjvqpme.supabase.co/functions/v1/admin";
+var token = localStorage.getItem("luce_token") || "";
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+function won(n){ return Number(n).toLocaleString("ko-KR"); }
+
+function api(body){
+  return fetch(BASE, { method:"POST", headers:{"Content-Type":"application/json","X-Admin-Token":token}, body:JSON.stringify(body) })
+    .then(function(r){ return r.json(); });
+}
+
+function doLogin(){
+  api({ action:"login", password:$("pw").value }).then(function(d){
+    if(d.ok){ token=d.token; localStorage.setItem("luce_token",token); $("loginErr").innerHTML=""; loadData(); }
+    else { $("loginErr").innerHTML='<div class="msg no">비밀번호가 올바르지 않습니다.</div>'; }
+  });
+}
+function logout(){ localStorage.removeItem("luce_token"); token=""; $("dash").classList.add("hidden"); $("login").classList.remove("hidden"); }
+
+function loadData(msg, ok){
+  api({ action:"data" }).then(function(d){
+    if(!d.ok){ logout(); return; }
+    $("login").classList.add("hidden"); $("dash").classList.remove("hidden");
+    $("msg").innerHTML = msg ? '<div class="msg '+(ok?"ok":"no")+'">'+esc(msg)+'</div>' : "";
+    render(d);
+  });
+}
+
+function render(d){
+  $("stats").innerHTML =
+    stat(d.stats.plays,"총 플레이")+stat(d.stats.total,"발급 쿠폰")+stat(d.stats.unused,"미사용")+stat(d.stats.used,"사용완료");
+  var pt = '<tr><th>상품</th><th>금액</th><th style="width:120px">가중치</th><th>현재 확률</th></tr>';
+  d.prizes.forEach(function(p){
+    pt += '<tr><td>'+esc(p.label)+'</td><td>'+won(p.amount)+'원'+(p.amount===0?" (꽝)":"")+'</td>'+
+      '<td><input class="num" type="number" min="0" step="1" data-key="'+esc(p.key)+'" value="'+p.weight+'"></td>'+
+      '<td><strong>'+p.percent+'%</strong></td></tr>';
+  });
+  $("prizeTable").innerHTML = pt;
+  renderCoupons(d.coupons);
+}
+function stat(n,l){ return '<div class="stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
+
+function renderCoupons(cs){
+  var t = '<tr><th>쿠폰번호</th><th>상품</th><th>유저</th><th>상태</th><th>발급</th><th>만료</th></tr>';
+  if(!cs || !cs.length){ t += '<tr><td colspan="6" style="opacity:.5">발급된 쿠폰이 없습니다.</td></tr>'; }
+  else cs.forEach(function(c){
+    t += '<tr><td class="code">'+esc(c.code)+'</td><td>'+esc(c.label)+'</td><td>@'+esc(c.username)+'</td>'+
+      '<td><span class="badge '+c.status+'">'+(c.status==="unused"?"미사용":"사용완료")+'</span></td>'+
+      '<td>'+esc(String(c.issued_at).slice(0,10))+'</td><td>'+esc(String(c.expires_at).slice(0,10))+'</td></tr>';
+  });
+  $("couponTable").innerHTML = t;
+}
+
+function saveWeights(){
+  var w = {};
+  document.querySelectorAll('#prizeTable input.num').forEach(function(i){ w[i.getAttribute("data-key")] = Number(i.value); });
+  api({ action:"weights", weights:w }).then(function(d){
+    if(d.ok){ $("msg").innerHTML='<div class="msg ok">확률 '+d.n+'개 항목이 갱신되었습니다.</div>'; render(d); }
+  });
+}
+
+function lookup(){
+  var code = $("code").value.trim(); if(!code) return;
+  api({ action:"lookup", code:code }).then(function(d){ showLookup(code, d.coupon); });
+}
+function showLookup(code, c){
+  if(!c){ $("lookupBox").innerHTML = '<div class="msg no" style="margin-top:14px">\''+esc(code)+'\' 쿠폰을 찾을 수 없습니다.</div>'; return; }
+  var statusKo = c.status==="unused"?"미사용":"사용완료";
+  var used = c.used_at ? '<div class="k">사용일 '+esc(c.used_at)+' ('+esc(c.used_by)+')</div>' : "";
+  var btn = c.status==="unused" ? '<button class="btn-danger" style="margin-top:14px" onclick="redeem(\''+esc(c.code)+'\')">✅ 사용처리</button>' : "";
+  $("lookupBox").innerHTML =
+    '<div class="lookup"><div class="k">쿠폰번호</div><div class="big">'+esc(c.code)+'</div>'+
+    '<p><span class="badge '+c.status+'">'+statusKo+'</span> &nbsp; <strong>'+esc(c.label)+'</strong></p>'+
+    '<div class="k">발급 '+esc(String(c.issued_at).slice(0,10))+' · 만료 '+esc(String(c.expires_at).slice(0,10))+'</div>'+used+btn+'</div>';
+}
+function redeem(code){
+  if(!confirm("이 쿠폰을 사용처리할까요? 되돌릴 수 없습니다.")) return;
+  api({ action:"redeem", code:code }).then(function(d){
+    $("msg").innerHTML = '<div class="msg '+(d.ok?"ok":"no")+'">'+esc(d.msg)+'</div>';
+    showLookup(code, d.coupon);
+    loadData();
+  });
+}
+
+if(token) loadData(); else { $("login").classList.remove("hidden"); }
+</script>
+</body>
+</html>
