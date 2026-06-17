@@ -299,10 +299,15 @@ function renderResult(d, fromHistory){
       }
       window._hold = { code:c.code, label:c.label, amount:c.amount, expires_at:c.expires_at };
     }
+    var st = c.status || "unused";
+    var usageLine = (st === "used")
+      ? '<div class="meta" style="color:#999;margin-top:12px">이미 사용 완료된 쿠폰입니다.</div>'
+      : (st === "revoked")
+        ? '<div class="meta" style="color:#ff8a84;margin-top:12px">⚠️ 무효 처리된 쿠폰입니다.</div>'
+        : '<p style="margin-top:14px;font-size:13.5px;line-height:1.6;color:#ffe9a8;font-weight:700">루체 실장님에게 쿠폰 번호를<br>불러주시면 사용 가능합니다.</p>';
     var couponHtml = c.code ?
       '<div class="coupon-code">' + c.code + '</div>' +
-      '<div class="meta">유효기간 · ~' + c.expires_at + '</div>' +
-      '<p style="margin-top:14px;font-size:13.5px;line-height:1.6;color:#ffe9a8;font-weight:700">루체 실장님에게 쿠폰 번호를<br>불러주시면 사용 가능합니다.</p>' : "";
+      '<div class="meta">유효기간 · ~' + c.expires_at + '</div>' + usageLine : "";
     p.innerHTML =
       '<div class="card win-card"><div class="emoji">🏆</div><div class="title">당첨을 축하합니다!</div>' +
       '<div class="prize-amount">' + d.label + '</div>' + couponHtml + '</div>' + walletBtn + histNote;
