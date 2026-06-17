@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Luce · 루체박스</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="qrcode.min.js"></script>
 <style>
   :root{ color-scheme: dark;
     --gold:#e9c25a; --gold-lt:#fff0bf; --gold-dk:#9c7322; --cream:#f3e6c4;
@@ -210,12 +209,6 @@ var initData = tg.initData || "";
 function $(id){ return document.getElementById(id); }
 function haptic(t){ try{ if(t==="win"){ tg.HapticFeedback.notificationOccurred("success"); } else { tg.HapticFeedback.impactOccurred(t); } }catch(e){} }
 function show(id){ ["loading","subscribe","game","resultPanel","holdPanel","walletPanel"].forEach(function(x){ $(x).classList.add("hidden"); }); $(id).classList.remove("hidden"); }
-// QR 생성 (라이브러리 없거나 실패해도 코드 텍스트로 폴백 — 렌더링이 죽지 않게)
-function makeQR(el, text, size){
-  if(!el) return;
-  try{ if(window.QRCode){ new QRCode(el, { text:text, width:size||140, height:size||140 }); return; } }catch(e){}
-  el.innerHTML = '<div style="font-family:monospace;font-weight:800;color:#111;font-size:13px;padding:6px">'+text+'</div>';
-}
 
 function post(path, body, retry){
   if(retry === undefined) retry = 1;
@@ -242,7 +235,7 @@ function loadStatus(){
   // 두 번째 인자(onRejected)로 네트워크 실패만 처리 → 렌더링 예외는 "네트워크 오류"로 둔갑하지 않음
   post("/status", { initData: initData }).then(
     function(res){ handleStatus(res.data); },
-    function(){ renderError("네트워크 오류. 잠시 후 다시 시도해주세요.", true); }
+    function(err){ renderError("네트워크 오류. 잠시 후 다시 시도해주세요.<br><span style='opacity:.5;font-size:11px'>(" + (err && err.message ? err.message : "fetch") + ")</span>", true); }
   );
 }
 
@@ -283,13 +276,11 @@ function renderHold(c){
       '<div class="title">보유 중인 쿠폰</div>' +
       '<div class="prize-amount" style="font-size:28px">' + c.label + '</div>' +
       '<div class="coupon-code">' + c.code + '</div>' +
-      '<div id="holdqr"></div>' +
       '<div class="meta">유효기간 · ~' + c.expires_at + '</div>' +
       '<p style="opacity:.8;font-size:13px;margin-top:14px;line-height:1.6">쿠폰은 <b>한 번에 하나만</b> 보유할 수 있어요.<br>이 쿠폰을 매장에서 <b>사용</b>하면 다시 도전할 수 있습니다.</p>' +
       '<div style="margin-top:12px"><button class="btn ghost" onclick="loadStatus()">🔄 새로고침</button></div>' +
     '</div>';
   show("holdPanel");
-  makeQR($("holdqr"), c.code, 140);
   haptic("light");
 }
 
@@ -307,14 +298,13 @@ function renderResult(d, fromHistory){
       window._hold = { code:c.code, label:c.label, amount:c.amount, expires_at:c.expires_at };
     }
     var couponHtml = c.code ?
-      '<div class="coupon-code">' + c.code + '</div><div id="qr"></div>' +
+      '<div class="coupon-code">' + c.code + '</div>' +
       '<div class="meta">유효기간 · ~' + c.expires_at + '</div>' +
       '<div class="meta">사용 시 매장에 쿠폰번호를 보여주세요</div>' : "";
     p.innerHTML =
       '<div class="card win-card"><div class="emoji">🏆</div><div class="title">당첨을 축하합니다!</div>' +
       '<div class="prize-amount">' + d.label + '</div>' + couponHtml + '</div>' + walletBtn + histNote;
     show("resultPanel");
-    if(c.code){ makeQR($("qr"), c.code, 140); }
     if(!fromHistory){ celebrate(); } haptic("win");
   } else {
     p.innerHTML =
@@ -342,7 +332,6 @@ function openWallet(){
     items += '<div class="wallet-item" style="opacity:'+op+'">' +
       '<div style="display:flex;justify-content:space-between;align-items:center"><strong>'+c.label+'</strong>'+badge+'</div>' +
       '<div class="wcode">'+c.code+'</div>' +
-      (c.status === "unused" ? '<div style="text-align:center"><div class="wqr" id="wqr'+i+'"></div></div>' : "") +
       '<div class="meta">유효기간 ~'+c.expires_at+(c.used_at ? (' · '+c.used_at) : "")+'</div></div>';
   }
   $("walletPanel").innerHTML =
@@ -350,7 +339,6 @@ function openWallet(){
     '<h2 style="margin:0;font-size:19px;color:#fff0bf">🎟️ 내 쿠폰함</h2>' +
     '<button class="btn ghost" style="padding:9px 14px" onclick="backFromWallet()">← 돌아가기</button></div>' + items + '</div>';
   show("walletPanel");
-  for(var j=0;j<w.length;j++){ if(w[j].status === "unused"){ makeQR($("wqr"+j), w[j].code, 120); } }
 }
 
 function backFromWallet(){
