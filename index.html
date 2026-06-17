@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Luce · 루체박스</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="qrcode.min.js"></script>
 <style>
   :root{ color-scheme: dark;
     --gold:#e9c25a; --gold-lt:#fff0bf; --gold-dk:#9c7322; --cream:#f3e6c4;
@@ -210,6 +210,12 @@ var initData = tg.initData || "";
 function $(id){ return document.getElementById(id); }
 function haptic(t){ try{ if(t==="win"){ tg.HapticFeedback.notificationOccurred("success"); } else { tg.HapticFeedback.impactOccurred(t); } }catch(e){} }
 function show(id){ ["loading","subscribe","game","resultPanel","holdPanel","walletPanel"].forEach(function(x){ $(x).classList.add("hidden"); }); $(id).classList.remove("hidden"); }
+// QR 생성 (라이브러리 없거나 실패해도 코드 텍스트로 폴백 — 렌더링이 죽지 않게)
+function makeQR(el, text, size){
+  if(!el) return;
+  try{ if(window.QRCode){ new QRCode(el, { text:text, width:size||140, height:size||140 }); return; } }catch(e){}
+  el.innerHTML = '<div style="font-family:monospace;font-weight:800;color:#111;font-size:13px;padding:6px">'+text+'</div>';
+}
 
 function post(path, body, retry){
   if(retry === undefined) retry = 1;
@@ -218,22 +224,26 @@ function post(path, body, retry){
     .catch(function(e){ if(retry>0){ return new Promise(function(res){ setTimeout(res,700); }).then(function(){ return post(path,body,retry-1); }); } throw e; });
 }
 
+function handleStatus(data){
+  if(!data.ok){ renderError("사용자 인증에 실패했어요.<br>봇에서 게임을 다시 열어주세요.", true); return; }
+  if(!data.subscribed){
+    if(data.channel_url) $("channelLink").href = data.channel_url;
+    show("subscribe"); return;
+  }
+  window._today = data.today || {};
+  window._wallet = data.wallet || [];
+  window._hold = data.hold || null;
+  if(data.hold){ renderHold(data.hold); return; }                 // 미사용 쿠폰 보유 → 잠금
+  if(data.today && data.today.played){ renderResult(data.today, true); return; }
+  show("game");
+}
 function loadStatus(){
   show("loading");
-  post("/status", { initData: initData }).then(function(res){
-    var data = res.data;
-    if(!data.ok){ renderError("사용자 인증에 실패했어요.<br>봇에서 게임을 다시 열어주세요."); return; }
-    if(!data.subscribed){
-      if(data.channel_url) $("channelLink").href = data.channel_url;
-      show("subscribe"); return;
-    }
-    window._today = data.today || {};
-    window._wallet = data.wallet || [];
-    window._hold = data.hold || null;
-    if(data.hold){ renderHold(data.hold); return; }                 // 미사용 쿠폰 보유 → 잠금
-    if(data.today && data.today.played){ renderResult(data.today, true); return; }
-    show("game");
-  }).catch(function(){ renderError("네트워크 오류. 잠시 후 다시 시도해주세요.", true); });
+  // 두 번째 인자(onRejected)로 네트워크 실패만 처리 → 렌더링 예외는 "네트워크 오류"로 둔갑하지 않음
+  post("/status", { initData: initData }).then(
+    function(res){ handleStatus(res.data); },
+    function(){ renderError("네트워크 오류. 잠시 후 다시 시도해주세요.", true); }
+  );
 }
 
 var playing = false;
@@ -279,7 +289,7 @@ function renderHold(c){
       '<div style="margin-top:12px"><button class="btn ghost" onclick="loadStatus()">🔄 새로고침</button></div>' +
     '</div>';
   show("holdPanel");
-  new QRCode($("holdqr"), { text: c.code, width:140, height:140 });
+  makeQR($("holdqr"), c.code, 140);
   haptic("light");
 }
 
@@ -304,7 +314,7 @@ function renderResult(d, fromHistory){
       '<div class="card win-card"><div class="emoji">🏆</div><div class="title">당첨을 축하합니다!</div>' +
       '<div class="prize-amount">' + d.label + '</div>' + couponHtml + '</div>' + walletBtn + histNote;
     show("resultPanel");
-    if(c.code){ new QRCode($("qr"), { text: c.code, width:140, height:140 }); }
+    if(c.code){ makeQR($("qr"), c.code, 140); }
     if(!fromHistory){ celebrate(); } haptic("win");
   } else {
     p.innerHTML =
@@ -340,7 +350,7 @@ function openWallet(){
     '<h2 style="margin:0;font-size:19px;color:#fff0bf">🎟️ 내 쿠폰함</h2>' +
     '<button class="btn ghost" style="padding:9px 14px" onclick="backFromWallet()">← 돌아가기</button></div>' + items + '</div>';
   show("walletPanel");
-  for(var j=0;j<w.length;j++){ if(w[j].status === "unused"){ var el = $("wqr"+j); if(el) new QRCode(el, { text:w[j].code, width:120, height:120 }); } }
+  for(var j=0;j<w.length;j++){ if(w[j].status === "unused"){ makeQR($("wqr"+j), w[j].code, 120); } }
 }
 
 function backFromWallet(){
