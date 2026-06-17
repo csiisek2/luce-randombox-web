@@ -87,7 +87,7 @@
     <div class="card">
       <h2>🎫 쿠폰 조회 / 사용처리 / 회수</h2>
       <div class="row">
-        <input type="text" id="code" placeholder="쿠폰번호 입력 (예: RAND-5만-A1B2C3)">
+        <input type="text" id="code" placeholder="쿠폰번호 / 유저ID / username (예: RAND-5만-A1B2C3, 5773319399, sida07)">
         <button class="btn-primary" onclick="lookup()">조회</button>
       </div>
       <div id="lookupBox"></div>
@@ -186,37 +186,41 @@ function resetUser(all){
   });
 }
 
-function lookup(){
-  var code = $("code").value.trim(); if(!code) return;
-  api({ action:"lookup", code:code }).then(function(d){ showLookup(code, d.coupon); });
-}
 function statusLabel(s){ return s==="unused"?"미사용":(s==="used"?"사용완료":"회수됨"); }
-function showLookup(code, c){
-  if(!c){ $("lookupBox").innerHTML = '<div class="msg no" style="margin-top:14px">\''+esc(code)+'\' 쿠폰을 찾을 수 없습니다.</div>'; return; }
+function couponBlock(c){
   var used = c.used_at ? '<div class="k">처리 '+esc(c.used_at)+' ('+esc(c.used_by)+')</div>' : "";
   var btns = "";
   if(c.status==="unused"){
-    btns = '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">'+
+    btns = '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">'+
       '<button class="btn-danger" onclick="redeem(\''+esc(c.code)+'\')">✅ 사용처리</button>'+
       '<button style="background:#555;color:#fff" onclick="revoke(\''+esc(c.code)+'\')">🚫 회수(취소)</button></div>';
   }
-  $("lookupBox").innerHTML =
-    '<div class="lookup"><div class="k">쿠폰번호</div><div class="big">'+esc(c.code)+'</div>'+
+  return '<div class="lookup" style="margin-top:10px"><div class="big">'+esc(c.code)+'</div>'+
     '<p><span class="badge '+c.status+'">'+statusLabel(c.status)+'</span> &nbsp; <strong>'+esc(c.label)+'</strong> &nbsp; <span class="k">@'+esc(c.username)+'</span></p>'+
     '<div class="k">발급 '+esc(String(c.issued_at).slice(0,10))+' · 만료 '+esc(String(c.expires_at).slice(0,10))+'</div>'+used+btns+'</div>';
+}
+function showCoupons(q, list){
+  if(!list || !list.length){ $("lookupBox").innerHTML = '<div class="msg no" style="margin-top:14px">\''+esc(q)+'\' 에 해당하는 쿠폰이 없습니다.</div>'; return; }
+  var html = list.length>1 ? '<div class="k" style="margin:12px 0 -2px">총 '+list.length+'건</div>' : "";
+  for(var i=0;i<list.length;i++){ html += couponBlock(list[i]); }
+  $("lookupBox").innerHTML = html;
+}
+function lookup(){
+  var q = $("code").value.trim(); if(!q) return;
+  api({ action:"lookup", code:q }).then(function(d){ showCoupons(q, d.coupons); });
 }
 function redeem(code){
   if(!confirm("이 쿠폰을 사용처리할까요? 되돌릴 수 없습니다.")) return;
   api({ action:"redeem", code:code }).then(function(d){
     $("msg").innerHTML = '<div class="msg '+(d.ok?"ok":"no")+'">'+esc(d.msg)+'</div>';
-    showLookup(code, d.coupon); loadData(); window.scrollTo(0,0);
+    lookup(); loadData(); window.scrollTo(0,0);
   });
 }
 function revoke(code){
   if(!confirm("이 쿠폰을 회수(취소)할까요? 유저가 사용할 수 없게 됩니다.")) return;
   api({ action:"revoke", code:code }).then(function(d){
     $("msg").innerHTML = '<div class="msg '+(d.ok?"ok":"no")+'">'+esc(d.msg)+'</div>';
-    showLookup(code, d.coupon); loadData(); window.scrollTo(0,0);
+    lookup(); loadData(); window.scrollTo(0,0);
   });
 }
 function grant(){
